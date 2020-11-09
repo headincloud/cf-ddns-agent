@@ -18,7 +18,7 @@ func PerformRecordUpdate(token string, domain string, host string, value net.IP)
 
 	// check current setting
 	id, err := api.ZoneIDByName(domain)
-	if err!= nil {
+	if err != nil {
 		log.Errorf("Error encountered while performing lookup of zone %s: %s", domain, err.Error())
 		return
 	}

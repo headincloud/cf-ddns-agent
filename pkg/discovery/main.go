@@ -1,13 +1,14 @@
 package discovery
 
 import (
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
-func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error){
+func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	// get ip
 	resp, err := http.Get(DiscoveryURL)
 	if err != nil {
