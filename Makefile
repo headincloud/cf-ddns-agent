@@ -96,11 +96,6 @@ vet:
 	@go list ./... | grep -v /vendor/ | xargs go vet
 	@echo "*** Done ***"
 
-dep:
-	@echo "*** Installing all dependencies... ***"
-	@go get
-	@echo "*** Done ***"
-
 bootstrap:
 	@echo "*** Installing required tools for building... ***"
 	@for tool in  $(EXTERNAL_TOOLS) ; do \
@@ -117,7 +112,6 @@ help:
 	@printf $(HELP_FORMATSTRING) "local" "Build executable for your OS, for testing purposes (this is the default)"
 	@printf $(HELP_FORMATSTRING) "help" "This message"
 	@printf $(HELP_FORMATSTRING) "bootstrap" "Install tools needed for build"
-	@printf $(HELP_FORMATSTRING) "dep" "Install libraries needed for compilation"
 	@printf $(HELP_FORMATSTRING) "all-platforms" "Compile for all platforms"
 	@printf $(HELP_FORMATSTRING) "vet" "Checks code for common mistakes"
 	@printf $(HELP_FORMATSTRING) "lint" "Perform lint/revive check"
