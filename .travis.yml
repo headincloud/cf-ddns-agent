@@ -20,8 +20,8 @@ matrix:
 before_install:
   - make bootstrap
 
-#install:
-#  - make dep
+install:
+  - make dep
 
 before_script:
   - make lint
