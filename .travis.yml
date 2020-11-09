@@ -1,0 +1,33 @@
+dist: bionic
+language: go
+sudo: false
+
+services:
+  - docker
+
+
+matrix:
+  include:
+    # "1.x" always refers to the latest Go version, inc. the patch release.
+    # e.g. "1.x" is 1.11 until 1.11.1 is available.
+    - go: 1.x
+      env: LATEST=true
+    - go: 1.15.x
+    - go: master
+  allow_failures:
+    - go: master
+
+before_install:
+  - make bootstrap
+
+install:
+  - make dep
+
+before_script:
+  - make lint
+  - make vet
+  - make check-spelling
+
+script:
+  - make test
+  - if [ "${LATEST}" = "true" ]; then make -j all-platforms; else make; fi
