@@ -13,7 +13,6 @@ matrix:
     - go: "1.x"
       env: LATEST=true
     - go: "1.15.x"
-      env: GO111MODULE=on
     - go: master
   allow_failures:
     - go: master
