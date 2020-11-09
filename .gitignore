@@ -13,6 +13,7 @@
 
 # exclude main binaries
 bin/
+release/
 
 # exclude temp binaries for local testing
 cf-ddns-agent
