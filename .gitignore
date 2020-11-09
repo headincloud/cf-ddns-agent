@@ -16,8 +16,8 @@ bin/
 release/
 
 # exclude temp binaries for local testing
-cf-ddns-agent
-cf-ddns-agent.exe
+/cf-ddns-agent
+/cf-ddns-agent.exe
 
 #logs
 *.log
