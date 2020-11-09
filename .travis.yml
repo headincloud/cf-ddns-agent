@@ -10,9 +10,9 @@ matrix:
   include:
     # "1.x" always refers to the latest Go version, inc. the patch release.
     # e.g. "1.x" is 1.11 until 1.11.1 is available.
-    - go: 1.x
+    - go: "1.x"
       env: LATEST=true
-    - go: 1.15.x
+    - go: "1.15.x"
     - go: master
   allow_failures:
     - go: master
