@@ -5,6 +5,8 @@ sudo: false
 services:
   - docker
 
+# we don't run anything on main branch
+if: branch != main
 
 matrix:
   include:
