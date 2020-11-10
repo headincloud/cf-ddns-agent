@@ -2,7 +2,6 @@ dist: bionic
 language: go
 go:
   - "1.15.x"
-  - "1.x"
 
 sudo: false
 
@@ -29,6 +28,7 @@ jobs:
     - stage: build all-platforms
       script:
       - make all-platforms
+
 
 #deploy:
 #  provider: releases
