@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/headincloud/cf-ddns-agent.svg?branch=main)](https://travis-ci.com/headincloud/cf-ddns-agent)
+[![Build Status](https://travis-ci.com/headincloud/cf-ddns-agent.svg?branch=develop)](https://travis-ci.com/headincloud/cf-ddns-agent)
 
 # cf-ddns-agent
 
