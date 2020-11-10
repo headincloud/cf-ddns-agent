@@ -28,7 +28,7 @@
 
 By default, the program will update the IP (if necessary) and then exit. If the update fails, error code 1 will be returned by the program. To run it continuously, use the `-daemon` and `-update-interval` parameters.
 
-The `-discovery-url` parameter, expects a URL that return the IPv4 address in plain-text, without any markup.
+The `-discovery-url` parameter, expects a URL that returns the IPv4 address in plain-text, without any markup.
 
 If setting the `CF_API_TOKEN` is not possible for some reason, it is possible to specify it on the command line using the `-cf-api-token` parameter. **This is discouraged as this is not very secure!**
 
