@@ -43,8 +43,8 @@ endef
 get_goos = $(firstword $(subst /, ,$(1)))
 get_goarch = $(word 2,$(subst /, ,$(1)))
 # aux functions called by get_target_output
-get_unix_target = $(BIN_DIR)/$(BINARY_NAME)_$(call get_goos,$1)_$(call get_goarch,$1)
-get_win_target = $(BIN_DIR)/$(BINARY_NAME)_$(call get_goos,$1)_$(call get_goarch,$1).exe
+get_unix_target = $(BIN_DIR)/$(BINARY_NAME)_$(VERSION)_$(call get_goos,$1)_$(call get_goarch,$1)
+get_win_target = $(BIN_DIR)/$(BINARY_NAME)_$(VERSION)_$(call get_goos,$1)_$(call get_goarch,$1).exe
 # determine output filename for a platform
 get_target_output = $(if $(findstring windows,$(call get_goos,$1)),$(call get_win_target,$1),$(call get_unix_target,$1))
 
@@ -56,7 +56,7 @@ ALL_PLATFORMS = $(foreach platform,$(PLATFORMS),$(call get_target_output,$(platf
 
 all-platforms: $(ALL_PLATFORMS)
 
-.PHONY: all-platforms local clean fmt check_spelling fix_spelling vet dep bootstrap help tests lint hash
+.PHONY: all-platforms local clean fmt check_spelling fix_spelling vet bootstrap help tests lint release
 
 local:
 	@echo "*** Building local binary... ***"
@@ -106,6 +106,9 @@ bootstrap:
 
 test:
 	@go test -race -coverprofile=$(COV_REPORT) -covermode=atomic ./...
+
+release: all-platforms
+	build/package/make_release.sh $(BIN_DIR) $(RELEASE_DIR) $(VERSION)
 
 help:
 	@printf "\n*** Available make targets ***\n\n"
