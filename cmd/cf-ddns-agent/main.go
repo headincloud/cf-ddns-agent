@@ -80,10 +80,12 @@ func main() {
 		err := PerformUpdate()
 		defer Exit(err)
 	} else {
+		// let's do an update at daemon startup
+		_ = PerformUpdate()
+		// now start our timer and ctrl-c handler
 		ticker := time.NewTicker(time.Duration(Options.UpdateInterval) * time.Minute)
 		quit := make(chan os.Signal)
 		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-		_ = PerformUpdate()
 		for {
 			select {
 			case <-ticker.C:
