@@ -1,5 +1,7 @@
 dist: bionic
 language: go
+go: "1.15.x"
+
 sudo: false
 
 services:
@@ -8,25 +10,29 @@ services:
 # we don't run anything on main branch
 if: branch != main
 
-matrix:
+jobs:
   include:
-    # "1.x" always refers to the latest Go version, inc. the patch release.
-    # e.g. "1.x" is 1.11 until 1.11.1 is available.
-    - go: "1.x"
-      env: LATEST=true
-    - go: "1.15.x"
-    - go: master
-  allow_failures:
-    - go: master
+    - stage: test
+      before_install:
+        - make bootstrap
+      before_script:
+        - make lint
+        - make vet
+        - make check-spelling
+      script:
+        - make test
+    - stage: build local
+      script:
+        - make
+    - stage: build all-platforms
+      script:
+      - make all-platforms
 
-before_install:
-  - make bootstrap
-
-before_script:
-  - make lint
-  - make vet
-  - make check-spelling
-
-script:
-  - make test
-  - if [ "${LATEST}" = "true" ]; then make -j all-platforms; else make; fi
+#deploy:
+#  provider: releases
+#  api_key: "GITHUB OAUTH TOKEN"
+#  file_glob: true
+#  file: release/*
+#  skip_cleanup: true
+#  on:
+#    tags: true
