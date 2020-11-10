@@ -17,6 +17,7 @@
 package discovery
 
 import (
+	"errors"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -31,6 +32,10 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 		log.Errorf("Could not connect to IP discovery service: %s", err.Error())
 	}
 	defer resp.Body.Close()
+	if ! (resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+		log.Errorf("Discovery returned a status code which is not in the 2XX range: %d", resp.StatusCode)
+		err = errors.New("Returned status code not in 2XX range.")
+	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Could not read response from IP discovery service: %s", err.Error())
