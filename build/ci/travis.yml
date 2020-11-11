@@ -23,7 +23,7 @@ jobs:
       script:
         - make
     - stage: prepare release
-      if: branch = develop
+      if: branch = develop OR tag != ""
       script:
       - make release
 
