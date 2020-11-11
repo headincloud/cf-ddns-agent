@@ -21,13 +21,17 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	// get ip
-	resp, err := http.Get(DiscoveryURL)
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	resp, err := client.Get(DiscoveryURL)
 	if err != nil {
 		log.Errorf("Could not connect to IP discovery service: %s", err.Error())
 	}
