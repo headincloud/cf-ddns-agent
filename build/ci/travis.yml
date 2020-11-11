@@ -1,30 +1,33 @@
 dist: bionic
 language: go
+go:
+- 1.15.x
 sudo: false
-
-services:
-  - docker
-
-
-matrix:
+if: branch != main
+jobs:
   include:
-    # "1.x" always refers to the latest Go version, inc. the patch release.
-    # e.g. "1.x" is 1.11 until 1.11.1 is available.
-    - go: "1.x"
-      env: LATEST=true
-    - go: "1.15.x"
-    - go: master
-  allow_failures:
-    - go: master
-
-before_install:
-  - make bootstrap
-
-before_script:
-  - make lint
-  - make vet
-  - make check-spelling
-
-script:
-  - make test
-  - if [ "${LATEST}" = "true" ]; then make -j all-platforms; else make; fi
+  - stage: test
+    before_install:
+    - make bootstrap
+    before_script:
+    - make lint
+    - make vet
+    - make check-spelling
+    script:
+    - make test
+  - stage: build local
+    script:
+    - make
+  - stage: prepare release
+    if: branch = develop OR tag != ""
+    script:
+    - make release
+    deploy:
+      provider: releases
+      api_key:
+        secure: X3ZXjAf0UjGmjsguSmHvDYsVBZ1HkQ7JDQvo7JPU4wyRJI9Fr/zDwbyPwxEfQ1Pjdzzlm/v32YOqOFC7vbaMs78SuNCQs+DPckTERk+p5SXxp18y+uulKEpn5LUKDGsTDTig57RScenchB7IDs5P841B7HlJRLhWdkwMKyNFZFNz7ukiynvuomjkSQDANRGQOtolKJgkqgnFbjUJBtTu30Tz6lKBywa3LHb5JHNDJArXB9oxeYR3C3YTyAtIwtXILob/fFJwfAAhmMnt+pYeRvpLxKaTyJLmrGUCyimHK0PBtPtiM3vY2bIyIJFPMuVrhzNE/AuHXJ5PQajz58v1vcDPSmij4NDdVjrCraJAESFtZuAtp8EatcFaEWv0ZQP4o5QpoVgvl3LVG5bb1fhi9Gebn5zFw5hE0FNboQza4huCKdee5eyioD7DueqDvcQBzJdOHHCRbN4GSyKUOn+SPLQiagzPK2jIKLvrLFf1zX4mE1IBPsQJnyHRUAjTW9FwL80jpGu8tuVsD1OmLmanK2Dic4omCdgOkpavYBMa2c5Vp/PxNhILdV+5B1BJovqcs+wXmIZVkJ3Y/9v9ZytqcMejzlSuMLEU3a5/2HPF/r/UFiUYC04J36V672gckgm8cRexfUIud5X34y5raTrl/8PGF/DNOmxMgK6a2/+bcGw=
+      file_glob: true
+      file: release/*
+      skip_cleanup: true
+      on:
+        tags: true

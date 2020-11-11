@@ -35,6 +35,6 @@ func InitConfig(Options *ProgramOptions) {
 	flag.StringVar(&Options.Host, "host", "", "Specify the full A record name that needs to be updated. (example: 'myhost.mydomain.org') - REQUIRED")
 	flag.StringVar(&Options.CfAPIToken, "cf-api-token", "", "Specify the CloudFlare API token. Using this parameter is discouraged, and the token should be specified in CF_API_TOKEN environment variable.")
 	flag.BoolVar(&Options.Daemon, "daemon", false, "Run continuously in background and perform update every <x> minutes. (see 'update-interval')")
-	flag.IntVar(&Options.UpdateInterval, "update-interval", 30, "Specify interval (in minutes) for updating the DNS record when running as a daemon. (see 'daemon')")
+	flag.IntVar(&Options.UpdateInterval, "update-interval", 15, "Specify interval (in minutes) for updating the DNS record when running as a daemon. (see 'daemon'). A minimum of 5 is enforced.")
 	flag.Parse()
 }

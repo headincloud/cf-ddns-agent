@@ -20,7 +20,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
 	"github.com/headincloud/cf-ddns-agent/pkg/config"
@@ -57,6 +59,11 @@ func main() {
 		log.Fatal("Both --domain and --host  must be set!")
 	}
 
+	if Options.Daemon && (Options.UpdateInterval < 5) {
+		log.Warnf("Update interval is set too low. It has been set to 5 minutes.")
+		Options.UpdateInterval = 5
+	}
+
 	if Options.CfAPIToken != "" {
 		log.Warning("CloudFlare API token specified via command-line parameter instead of CF_API_TOKEN environment variable. This is insecure!")
 	} else {
@@ -73,13 +80,18 @@ func main() {
 		err := PerformUpdate()
 		defer Exit(err)
 	} else {
+		// let's do an update at daemon startup
+		_ = PerformUpdate()
+		// now start our timer and ctrl-c handler
 		ticker := time.NewTicker(time.Duration(Options.UpdateInterval) * time.Minute)
-		quit := make(chan struct{})
+		quit := make(chan os.Signal)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 		for {
 			select {
 			case <-ticker.C:
 				_ = PerformUpdate()
-			case <-quit:
+			case sig := <-quit:
+				log.Infof("Received %s, exiting gracefully...", sig)
 				ticker.Stop()
 				return
 			}

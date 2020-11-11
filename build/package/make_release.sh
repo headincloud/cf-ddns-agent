@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
 #
 # Copyright (c) 2020 Jeroen Jacobs/Head In Cloud BV.
