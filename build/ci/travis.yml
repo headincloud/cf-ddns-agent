@@ -28,7 +28,9 @@ jobs:
       - make release
       deploy:
         provider: releases
-        api_key: "GITHUB OAUTH TOKEN"
+        # see https://stackoverflow.com/questions/25302518/travis-ci-setup-releases-with-github-token
+        # Travis token encryption is not very well documented.
+        api_key: "VkrcUXhywTBflSjdOK5ToS5s9c62e47uNPK6nVl1JdH+xfmF8/ceWmzWxCjgzP0E34DrUbG3MFMJw3aMJxmNRqAID91Y+uEEa+SsB+0a50xfGJUFQL/XIwWQNOzJ/L0/Az4A+HNDaQyXV/3pdUicN0jOBSTFXNbx6mjMEtQyDzHtoEpvEwIKLpGDHoNqNblp/i5GTgmGtfcHKbyqpz99RrCm0cp82GBu0YbUwpxdjWouJiquIJHiwIdC0ybjkJGGaTeJ/ZhBRDL28+sOuUWoEYgGfMtiKgr3MihjStAgE3eN1yJMYcyMVSbUlpVPt7dwCtYYT3+A8mfhvFWBZSl7o24/+PhMmT40fPjZ55rY9V3KzUzpb0zltqzrKJzXtEIIDd0b/OfuR/cFojfJYw3vG1Cj2IIEQ+3JyCcC+6PcXwNuPunQblxFPk7S9ZN0hHa/Z5vwldFVAz3qMa34IJbjZ0rV170QeuFIl5A8wl9NDVFiWxB+WuiZyTk9GxHh0RGHsc7O5lgCVLD4y59VpcYB5aJwfPs4XOlWTOSFgEE3pFonzfqzmjTorr24btiOYsLnDxeOxIbfRHaKetMEil/axG4MfRVNZrQ3a4SxhVqb5mFLaO3EfSWVhfrzFB2nOjXJSpmksJ36Eqf16MSf7a9TjXUL/lyy+YwFQe9hJTSflyw="
         file_glob: true
         file: release/*
         skip_cleanup: true
