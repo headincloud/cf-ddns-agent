@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Copyright (c) 2020 Jeroen Jacobs/Head In Cloud BV.
