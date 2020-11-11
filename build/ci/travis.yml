@@ -26,13 +26,11 @@ jobs:
       if: branch = develop OR tag != ""
       script:
       - make release
-
-
-#deploy:
-#  provider: releases
-#  api_key: "GITHUB OAUTH TOKEN"
-#  file_glob: true
-#  file: release/*
-#  skip_cleanup: true
-#  on:
-#    tags: true
+      deploy:
+        provider: releases
+        api_key: "GITHUB OAUTH TOKEN"
+        file_glob: true
+        file: release/*
+        skip_cleanup: true
+        on:
+          tags: true
