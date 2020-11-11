@@ -56,14 +56,16 @@ build_release() {
   for f in $BIN_DIR/*
   do
     FILENAME=`basename $f`
-    RELEASE=`echo "$FILENAME" | cut -d'.' -f1`
-    EXT=`echo "$FILENAME" | cut -d'.' -f2`
-    # if both parts are identical, there was no extension (Posix target).
-    if [ "$RELEASE" = "$EXT" ]; then
-      cp $f ${RELEASE_DIR}/${APP} ; zip -j ${RELEASE_DIR}/${RELEASE}.zip ${RELEASE_DIR}/${APP} ; rm ${RELEASE_DIR}/${APP}
-    else
+    EXT=`echo "$FILENAME" | rev| cut -d'.' -f1|rev`
+    if [ "$EXT" = "exe" ]; then
       # we have an extension (Windows target).
+      RELEASE=`echo "$FILENAME" | rev | cut -d'.' -f2-|rev`
+      echo $RELEASE
+      echo $EXT
       cp $f ${RELEASE_DIR}/${APP}.${EXT} ; zip -j ${RELEASE_DIR}/${RELEASE}.zip ${RELEASE_DIR}/${APP}.${EXT} ; rm ${RELEASE_DIR}/${APP}.${EXT}
+    else
+      RELEASE=$FILENAME
+      cp $f ${RELEASE_DIR}/${APP} ; zip -j ${RELEASE_DIR}/${RELEASE}.zip ${RELEASE_DIR}/${APP} ; rm ${RELEASE_DIR}/${APP}
     fi
   done
 

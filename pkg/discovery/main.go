@@ -29,24 +29,28 @@ import (
 func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	// get ip
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 	resp, err := client.Get(DiscoveryURL)
 	if err != nil {
 		log.Errorf("Could not connect to IP discovery service: %s", err.Error())
+		return
 	}
 	defer resp.Body.Close()
-	if ! (resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
 		log.Errorf("Discovery returned a status code which is not in the 2XX range: %d", resp.StatusCode)
-		err = errors.New("Returned status code not in 2XX range.")
+		err = errors.New("Returned status code not in 2XX range")
+		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Could not read response from IP discovery service: %s", err.Error())
+		return
 	}
 	ip = net.ParseIP(string(body))
 	if ip == nil {
 		log.Errorf("Could not parse received value as an IP address: %s", string(body))
+		return
 	}
 	log.Infof("IP address received: %s", ip)
 	return

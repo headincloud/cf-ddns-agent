@@ -11,6 +11,12 @@
 At the moment, there are executables for a mix of +- different os/cpu combinations (Including Windows, MacOS, Linux, *bsd, amd64, arm, arm64, mips64,...).
 
 Program executables can be download from the [releases](https://github.com/headincloud/cf-ddns-agent/releases) page.
+
+
+**Attention Windows users: It seems some anti-virus incorrectly classify the windows executable as malware. I am still investigating why this false-positive occurs. If someone has an idea, feel free to reach out. 
+To be clear: I do NOT include malware in the executable!**
+
+
 ## Usage
 
 ````
