@@ -6,10 +6,11 @@
 
 `cf-ddns-agent` is a dynamic DNS update agent for CloudFlare DNS.
 
-## Supported platforms
+## Supported platforms and downloads
 
 At the moment, there are executables for a mix of +- different os/cpu combinations (Including Windows, MacOS, Linux, *bsd, amd64, arm, arm64, mips64,...).
 
+Program executables can be download from the [releases](https://github.com/headincloud/cf-ddns-agent/releases) page.
 ## Usage
 
 ````
