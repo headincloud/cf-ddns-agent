@@ -2,12 +2,8 @@ dist: bionic
 language: go
 go:
   - "1.15.x"
-  - "1.x"
 
 sudo: false
-
-services:
-  - docker
 
 # we don't run anything on main branch
 if: branch != main
@@ -26,9 +22,10 @@ jobs:
     - stage: build local
       script:
         - make
-    - stage: build all-platforms
+    - stage: prepare release
+      if: branch = develop
       script:
-      - make all-platforms
+      - make release
 
 
 #deploy:
