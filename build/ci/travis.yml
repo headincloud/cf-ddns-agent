@@ -1,38 +1,33 @@
 dist: bionic
 language: go
 go:
-  - "1.15.x"
-
+- 1.15.x
 sudo: false
-
-# we don't run anything on main branch
 if: branch != main
-
 jobs:
   include:
-    - stage: test
-      before_install:
-        - make bootstrap
-      before_script:
-        - make lint
-        - make vet
-        - make check-spelling
-      script:
-        - make test
-    - stage: build local
-      script:
-        - make
-    - stage: prepare release
-      if: branch = develop OR tag != ""
-      script:
-      - make release
-      deploy:
-        provider: releases
-        # see https://stackoverflow.com/questions/25302518/travis-ci-setup-releases-with-github-token
-        # Travis token encryption is not very well documented.
-        api_key: "VkrcUXhywTBflSjdOK5ToS5s9c62e47uNPK6nVl1JdH+xfmF8/ceWmzWxCjgzP0E34DrUbG3MFMJw3aMJxmNRqAID91Y+uEEa+SsB+0a50xfGJUFQL/XIwWQNOzJ/L0/Az4A+HNDaQyXV/3pdUicN0jOBSTFXNbx6mjMEtQyDzHtoEpvEwIKLpGDHoNqNblp/i5GTgmGtfcHKbyqpz99RrCm0cp82GBu0YbUwpxdjWouJiquIJHiwIdC0ybjkJGGaTeJ/ZhBRDL28+sOuUWoEYgGfMtiKgr3MihjStAgE3eN1yJMYcyMVSbUlpVPt7dwCtYYT3+A8mfhvFWBZSl7o24/+PhMmT40fPjZ55rY9V3KzUzpb0zltqzrKJzXtEIIDd0b/OfuR/cFojfJYw3vG1Cj2IIEQ+3JyCcC+6PcXwNuPunQblxFPk7S9ZN0hHa/Z5vwldFVAz3qMa34IJbjZ0rV170QeuFIl5A8wl9NDVFiWxB+WuiZyTk9GxHh0RGHsc7O5lgCVLD4y59VpcYB5aJwfPs4XOlWTOSFgEE3pFonzfqzmjTorr24btiOYsLnDxeOxIbfRHaKetMEil/axG4MfRVNZrQ3a4SxhVqb5mFLaO3EfSWVhfrzFB2nOjXJSpmksJ36Eqf16MSf7a9TjXUL/lyy+YwFQe9hJTSflyw="
-        file_glob: true
-        file: release/*
-        skip_cleanup: true
-        on:
-          tags: true
+  - stage: test
+    before_install:
+    - make bootstrap
+    before_script:
+    - make lint
+    - make vet
+    - make check-spelling
+    script:
+    - make test
+  - stage: build local
+    script:
+    - make
+  - stage: prepare release
+    if: branch = develop OR tag != ""
+    script:
+    - make release
+    deploy:
+      provider: releases
+      api_key:
+        secure: X3ZXjAf0UjGmjsguSmHvDYsVBZ1HkQ7JDQvo7JPU4wyRJI9Fr/zDwbyPwxEfQ1Pjdzzlm/v32YOqOFC7vbaMs78SuNCQs+DPckTERk+p5SXxp18y+uulKEpn5LUKDGsTDTig57RScenchB7IDs5P841B7HlJRLhWdkwMKyNFZFNz7ukiynvuomjkSQDANRGQOtolKJgkqgnFbjUJBtTu30Tz6lKBywa3LHb5JHNDJArXB9oxeYR3C3YTyAtIwtXILob/fFJwfAAhmMnt+pYeRvpLxKaTyJLmrGUCyimHK0PBtPtiM3vY2bIyIJFPMuVrhzNE/AuHXJ5PQajz58v1vcDPSmij4NDdVjrCraJAESFtZuAtp8EatcFaEWv0ZQP4o5QpoVgvl3LVG5bb1fhi9Gebn5zFw5hE0FNboQza4huCKdee5eyioD7DueqDvcQBzJdOHHCRbN4GSyKUOn+SPLQiagzPK2jIKLvrLFf1zX4mE1IBPsQJnyHRUAjTW9FwL80jpGu8tuVsD1OmLmanK2Dic4omCdgOkpavYBMa2c5Vp/PxNhILdV+5B1BJovqcs+wXmIZVkJ3Y/9v9ZytqcMejzlSuMLEU3a5/2HPF/r/UFiUYC04J36V672gckgm8cRexfUIud5X34y5raTrl/8PGF/DNOmxMgK6a2/+bcGw=
+      file_glob: true
+      file: release/*
+      skip_cleanup: true
+      on:
+        tags: true
