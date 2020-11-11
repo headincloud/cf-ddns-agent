@@ -55,6 +55,7 @@ $(foreach platform,$(PLATFORMS),$(eval $(call TARGETRULE,$(call get_goos,$(platf
 ALL_PLATFORMS = $(foreach platform,$(PLATFORMS),$(call get_target_output,$(platform)))
 
 all-platforms: $(ALL_PLATFORMS)
+	@ls -l $(BIN_DIR)
 
 .PHONY: all-platforms local clean fmt check_spelling fix_spelling vet bootstrap help tests lint release
 
