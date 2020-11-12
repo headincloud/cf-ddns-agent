@@ -17,7 +17,7 @@
 package discovery
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -28,20 +28,12 @@ import (
 
 func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	// get ip
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Get(DiscoveryURL)
-	if err != nil {
-		log.Errorf("Could not connect to IP discovery service: %s", err.Error())
+	resp, err := RetryableGet(DiscoveryURL)
+	if err!=nil {
+		log.Errorf("An error occured when contacting the IP discovery service (%s).", DiscoveryURL)
 		return
 	}
 	defer resp.Body.Close()
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		log.Errorf("Discovery returned a status code which is not in the 2XX range: %d", resp.StatusCode)
-		err = errors.New("Returned status code not in 2XX range")
-		return
-	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Could not read response from IP discovery service: %s", err.Error())
@@ -49,9 +41,48 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	}
 	ip = net.ParseIP(string(body))
 	if ip == nil {
-		log.Errorf("Could not parse received value as an IP address: %s", string(body))
+		err = fmt.Errorf("Could not parse received value as an IP address.")
+		log.Error(err.Error())
 		return
 	}
 	log.Infof("IP address received: %s", ip)
+	return
+}
+
+func RetryableGet(url string) (resp *http.Response, err error) {
+	count:= 0
+	delay := 0 * time.Second
+	increment := 10* time.Second
+	for count < 3 {
+		if delay > (0 * time.Second) {
+			time.Sleep(delay)
+		}
+		delay+=increment
+		client := http.Client{
+			Timeout: 10 * time.Second,
+		}
+		resp, err = client.Get(url)
+		// connection or read time-out
+		if err != nil {
+			log.Errorf("Could not connect to url: %s. Retry in %s.", err.Error(), delay.String())
+			count++
+			continue
+		}
+
+		if (resp.StatusCode >= 500 && resp.StatusCode <= 599) {
+			err = fmt.Errorf("Server returned HTTP error %d. Retry in %s.", resp.StatusCode, delay.String())
+			log.Error(err.Error())
+			count++
+			continue
+		} else if (resp.StatusCode >= 400 && resp.StatusCode <= 499){
+			// We cannot recover from 4xx errors, so no need to try further.
+			err = fmt.Errorf("Unrecoverable error encountered. Please check the url is valid (HTTP error %d). Request aborted.", resp.StatusCode)
+			log.Error(err.Error())
+			break
+		} else {
+			// in other cases, we assume we succeeded so we break the loop.
+			break
+		}
+	}
 	return
 }
