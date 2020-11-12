@@ -30,18 +30,18 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	// get ip
 	resp, err := RetryableGet(DiscoveryURL)
 	if err!=nil {
-		log.Errorf("An error occured when contacting the IP discovery service (%s).", DiscoveryURL)
+		log.Errorf("An error occurred when contacting the IP discovery service (%s).", DiscoveryURL)
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("Could not read response from IP discovery service: %s", err.Error())
+		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
 	ip = net.ParseIP(string(body))
 	if ip == nil {
-		err = fmt.Errorf("Could not parse received value as an IP address.")
+		err = fmt.Errorf("could not parse received value as an IP address")
 		log.Error(err.Error())
 		return
 	}
@@ -69,14 +69,14 @@ func RetryableGet(url string) (resp *http.Response, err error) {
 			continue
 		}
 
-		if (resp.StatusCode >= 500 && resp.StatusCode <= 599) {
-			err = fmt.Errorf("Server returned HTTP error %d. Retry in %s.", resp.StatusCode, delay.String())
+		if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
+			err = fmt.Errorf("server returned HTTP error %d. Retry in %s", resp.StatusCode, delay.String())
 			log.Error(err.Error())
 			count++
 			continue
-		} else if (resp.StatusCode >= 400 && resp.StatusCode <= 499){
+		} else if resp.StatusCode >= 400 && resp.StatusCode <= 499{
 			// We cannot recover from 4xx errors, so no need to try further.
-			err = fmt.Errorf("Unrecoverable error encountered. Please check the url is valid (HTTP error %d). Request aborted.", resp.StatusCode)
+			err = fmt.Errorf("unrecoverable error encountered. Please check the url is valid (HTTP error %d). Request aborted", resp.StatusCode)
 			log.Error(err.Error())
 			break
 		} else {
