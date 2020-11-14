@@ -42,7 +42,14 @@ The `-discovery-url` parameter, expects a URL that returns the IPv4 address in p
 
 If setting the `CF_API_TOKEN` is not possible for some reason, it is possible to specify it on the command line using the `-cf-api-token` parameter. **This is discouraged as this is not very secure!**
 
- 
+
+## Timeouts and backoff/retry
+
+- The http client is configured with 10-second timeout. 
+- In case of timeout or a 5xx http error, the request is retried 3 times (each time with a longer delay between each attempt).
+- In case of a 4xx http error, no retry occurs as this probably means a configuration issue (invalid discovery url supplied).
+
+
 ## Roadmap
 
 - IPv6 and AAAA record support

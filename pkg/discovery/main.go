@@ -17,7 +17,7 @@
 package discovery
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -27,31 +27,74 @@ import (
 )
 
 func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
+	currentDelay := 10 * time.Second
+	incrementDelay := 10 * time.Second
+	retries := 3
 	// get ip
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Get(DiscoveryURL)
+	log.Infof("Contacting the IP discovery service (%s)...", DiscoveryURL)
+	resp, retryable, err := RetryableGet(DiscoveryURL)
 	if err != nil {
-		log.Errorf("Could not connect to IP discovery service: %s", err.Error())
+		log.Error(err.Error())
+		if retryable {
+			for count := 0; count < retries; count++ {
+				log.Infof("will retry in %s", currentDelay.String())
+				time.Sleep(currentDelay)
+				// action
+				resp, retryable, err = RetryableGet(DiscoveryURL)
+				if err != nil {
+					log.Error(err.Error())
+					if retryable {
+						currentDelay += incrementDelay
+						continue
+					} else {
+						// if not retryable, break loop
+						break
+					}
+				} else {
+					// if no error, we can break loop as well
+					break
+				}
+			}
+		}
+	}
+	// if still error, return
+	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		log.Errorf("Discovery returned a status code which is not in the 2XX range: %d", resp.StatusCode)
-		err = errors.New("Returned status code not in 2XX range")
-		return
-	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("Could not read response from IP discovery service: %s", err.Error())
+		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
 	ip = net.ParseIP(string(body))
 	if ip == nil {
-		log.Errorf("Could not parse received value as an IP address: %s", string(body))
+		err = fmt.Errorf("could not parse received value as an IP address")
+		log.Error(err.Error())
 		return
 	}
 	log.Infof("IP address received: %s", ip)
+	return
+}
+
+func RetryableGet(url string) (resp *http.Response, retryable bool, err error) {
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err = client.Get(url)
+	// connection or read time-out
+	if err != nil {
+		retryable = true
+		return
+	}
+
+	if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
+		err = fmt.Errorf("server returned HTTP error %d", resp.StatusCode)
+		retryable = true
+	} else if resp.StatusCode >= 400 && resp.StatusCode <= 499 {
+		// We cannot recover from 4xx errors, so no need to try further.
+		err = fmt.Errorf("server returned HTTP error %d", resp.StatusCode)
+		retryable = false
+	}
 	return
 }
