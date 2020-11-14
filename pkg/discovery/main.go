@@ -27,10 +27,38 @@ import (
 )
 
 func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
+	currentDelay := 10 * time.Second
+	incrementDelay := 10 * time.Second
+	retries := 3
 	// get ip
-	resp, err := RetryableGet(DiscoveryURL)
-	if err!=nil {
-		log.Errorf("An error occurred when contacting the IP discovery service (%s).", DiscoveryURL)
+	log.Infof("Contacting the IP discovery service (%s)...", DiscoveryURL)
+	resp, retryable, err := RetryableGet(DiscoveryURL)
+	if err != nil {
+		log.Error(err.Error())
+		if retryable {
+			for count := 0; count < retries; count++ {
+				log.Infof("will retry in %s", currentDelay.String())
+				time.Sleep(currentDelay)
+				// action
+				resp, retryable, err = RetryableGet(DiscoveryURL)
+				if err != nil {
+					log.Error(err.Error())
+					if retryable {
+						currentDelay += incrementDelay
+						continue
+					} else {
+						// if not retryable, break loop
+						break
+					}
+				} else {
+					// if no error, we can break loop as well
+					break
+				}
+			}
+		}
+	}
+	// if still error, return
+	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
@@ -49,40 +77,24 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	return
 }
 
-func RetryableGet(url string) (resp *http.Response, err error) {
-	count:= 0
-	delay := 0 * time.Second
-	increment := 10* time.Second
-	for count < 3 {
-		if delay > (0 * time.Second) {
-			time.Sleep(delay)
-		}
-		delay+=increment
-		client := http.Client{
-			Timeout: 10 * time.Second,
-		}
-		resp, err = client.Get(url)
-		// connection or read time-out
-		if err != nil {
-			log.Errorf("Could not connect to url: %s. Retry in %s.", err.Error(), delay.String())
-			count++
-			continue
-		}
+func RetryableGet(url string) (resp *http.Response, retryable bool, err error) {
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err = client.Get(url)
+	// connection or read time-out
+	if err != nil {
+		retryable = true
+		return
+	}
 
-		if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
-			err = fmt.Errorf("server returned HTTP error %d. Retry in %s", resp.StatusCode, delay.String())
-			log.Error(err.Error())
-			count++
-			continue
-		} else if resp.StatusCode >= 400 && resp.StatusCode <= 499{
-			// We cannot recover from 4xx errors, so no need to try further.
-			err = fmt.Errorf("unrecoverable error encountered. Please check the url is valid (HTTP error %d). Request aborted", resp.StatusCode)
-			log.Error(err.Error())
-			break
-		} else {
-			// in other cases, we assume we succeeded so we break the loop.
-			break
-		}
+	if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
+		err = fmt.Errorf("server returned HTTP error %d", resp.StatusCode)
+		retryable = true
+	} else if resp.StatusCode >= 400 && resp.StatusCode <= 499 {
+		// We cannot recover from 4xx errors, so no need to try further.
+		err = fmt.Errorf("server returned HTTP error %d", resp.StatusCode)
+		retryable = false
 	}
 	return
 }
