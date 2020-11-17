@@ -111,7 +111,7 @@ func PerformUpdate() (err error) {
 	if err != nil {
 		log.Errorf("An error was encountered during IP discovery. Check previous log entries for more details.")
 	} else {
-		err = util.PerformRecordUpdate(Options.CfAPIToken, Options.Domain, Options.Host, MyIP)
+		err = util.PerformRecordUpdate(Options.CfAPIToken, Options.Domain, Options.Host, MyIP, nil)
 		if err != nil {
 			log.Error("An error was encountered during updating of the DNS record. Check previous log entries for more details.")
 		}
