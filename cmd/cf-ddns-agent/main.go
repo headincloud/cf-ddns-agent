@@ -53,7 +53,10 @@ func main() {
 	}
 
 	log.Infof("%s (version %s) is starting...\n", AppName, Version)
-	log.Infof("IP Discovery service url is set to: %s", Options.DiscoveryURL)
+	log.Infof("IPv4 Discovery service url is set to: %s", Options.DiscoveryURL)
+	if Options.Ipv6Enabled {
+		log.Infof("IPv6 Discovery service url is set to: %s", Options.DiscoveryURLv6)
+	}
 
 	if Options.Domain == "" || Options.Host == "" {
 		log.Fatal("Both --domain and --host  must be set!")
@@ -107,13 +110,24 @@ func Exit(err error) {
 
 func PerformUpdate() (err error) {
 	// get ip and update
-	MyIP, err := discovery.DiscoverIPv4(Options.DiscoveryURL)
+	MyIPv4, err := discovery.DiscoverIPv4(Options.DiscoveryURL)
 	if err != nil {
-		log.Errorf("An error was encountered during IP discovery. Check previous log entries for more details.")
+		log.Errorf("An error was encountered during IPv4 discovery. Check previous log entries for more details.")
 	} else {
-		err = util.PerformRecordUpdate(Options.CfAPIToken, Options.Domain, Options.Host, MyIP)
+		err = util.UpdateCFRecord(Options.CfAPIToken, Options.Domain, Options.Host, "A", MyIPv4, Options.DryRun, Options.CreateMode)
 		if err != nil {
-			log.Error("An error was encountered during updating of the DNS record. Check previous log entries for more details.")
+			log.Error("An error was encountered during updating of the DNS A-record. Check previous log entries for more details.")
+		}
+	}
+	if Options.Ipv6Enabled {
+		MyIPv6, err := discovery.DiscoverIPv6(Options.DiscoveryURLv6)
+		if err != nil {
+			log.Errorf("An error was encountered during IPv4 discovery. Check previous log entries for more details.")
+		} else {
+			err = util.UpdateCFRecord(Options.CfAPIToken, Options.Domain, Options.Host, "AAAA", MyIPv6, Options.DryRun, Options.CreateMode)
+			if err != nil {
+				log.Error("An error was encountered during updating of the DNS AAAA-record. Check previous log entries for more details.")
+			}
 		}
 	}
 	return
