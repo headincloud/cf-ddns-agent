@@ -62,7 +62,7 @@ If setting the `CF_API_TOKEN` is not possible for some reason, it is possible to
 
 This software now includes experimental ipv6 support. you can enable it with the `-ipv6=true` parameter. This will update the AAAA-record for the specified host.
 
-** Attention: Most operating systems use a temporary ipv6 address for outbound connections. This feature needs to be disabled in order for `cf-ddns-agent` to work correctly! Check your operating system's manual. **
+**Attention: Most operating systems use a temporary ipv6 address for outbound connections. This feature needs to be disabled in order for `cf-ddns-agent` to work correctly! Check your operating system's manual.**
 
 ## Roadmap
 
