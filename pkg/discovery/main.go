@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"time"
 
+	valid "github.com/asaskevich/govalidator"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -67,13 +68,68 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
-	ip = net.ParseIP(string(body))
-	if ip == nil {
-		err = fmt.Errorf("could not parse received value as an IP address")
+	if valid.IsIPv4(string(body)) {
+		ip = net.ParseIP(string(body))
+		if ip == nil {
+			err = fmt.Errorf("could not parse received value as an IPv4 address")
+			log.Error(err.Error())
+			return
+		}
+		log.Infof("IP address received: %s", ip)
+	}
+	return
+}
+
+func DiscoverIPv6(DiscoveryURL string) (ip net.IP, err error) {
+	currentDelay := 10 * time.Second
+	incrementDelay := 10 * time.Second
+	retries := 3
+	// get ip
+	log.Infof("Contacting the IPv6 discovery service (%s)...", DiscoveryURL)
+	resp, retryable, err := RetryableGet(DiscoveryURL)
+	if err != nil {
 		log.Error(err.Error())
+		if retryable {
+			for count := 0; count < retries; count++ {
+				log.Infof("will retry in %s", currentDelay.String())
+				time.Sleep(currentDelay)
+				// action
+				resp, retryable, err = RetryableGet(DiscoveryURL)
+				if err != nil {
+					log.Error(err.Error())
+					if retryable {
+						currentDelay += incrementDelay
+						continue
+					} else {
+						// if not retryable, break loop
+						break
+					}
+				} else {
+					// if no error, we can break loop as well
+					break
+				}
+			}
+		}
+	}
+	// if still error, return
+	if err != nil {
 		return
 	}
-	log.Infof("IP address received: %s", ip)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorf("could not read response from IP discovery service: %s", err.Error())
+		return
+	}
+	if valid.IsIPv6(string(body)) {
+		ip = net.ParseIP(string(body))
+		if ip == nil {
+			err = fmt.Errorf("could not parse received value as an IPv6 address")
+			log.Error(err.Error())
+			return
+		}
+		log.Infof("IP address received: %s", ip)
+	}
 	return
 }
 

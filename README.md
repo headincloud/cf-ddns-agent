@@ -23,14 +23,22 @@ To be clear: I do NOT include malware in the executable!**
  ./cf-ddns-agent
   -cf-api-token string
     	Specify the CloudFlare API token. Using this parameter is discouraged, and the token should be specified in CF_API_TOKEN environment variable.
+  -create
+    	Create record with 'auto' TTL if it doesn't exist yet, or generate error otherwise. (default "true") (default true)
   -daemon
     	Run continuously in background and perform update every <x> minutes. (see 'update-interval')
   -discovery-url string
     	Specify an alternative IPv4 discovery service. (default "https://api.ipify.org")
+  -discovery-url-v6 string
+    	Specify an alternative IPv6 discovery service. (default "https://api64.ipify.org")
   -domain string
-    	Specify the CloudFlare domain. (example: 'mydomain.org') - REQUIRED
+    	Specify the CloudFlare domain. (example: 'mydomain.org') - REQUIRED.
+  -dry-run
+    	Run in "dry-run" mode, don't actually update the record. (default "false")
   -host string
-    	Specify the full A record name that needs to be updated. (example: 'myhost.mydomain.org') - REQUIRED
+    	Specify the full A record name that needs to be updated. (example: 'myhost.mydomain.org') - REQUIRED.
+  -ipv6
+    	Enable ipv6 support and CAA record updates, check README. (default "false")
   -update-interval int
     	Specify interval (in minutes) for updating the DNS record when running as a daemon. (see 'daemon'). A minimum of 5 is enforced. (default 15)
 ````
@@ -50,10 +58,16 @@ If setting the `CF_API_TOKEN` is not possible for some reason, it is possible to
 - In case of a 4xx http error, no retry occurs as this probably means a configuration issue (invalid discovery url supplied).
 
 
+## Ipv6 support
+
+This software now includes experimental ipv6 support. you can enable it with the `-ipv6=true` parameter. This will update the AAAA-record for the specified host.
+
+**Attention: Most operating systems use a temporary ipv6 address for outbound connections. This feature needs to be disabled in order for `cf-ddns-agent` to work correctly! Check your operating system's manual.**
+
 ## Roadmap
 
-- IPv6 and AAAA record support
-- Multiple IPv4 discovery providers
+- Improve IPv6 and AAAA record support
+- Multiple IP discovery providers
 
 
 ## License and copyright
@@ -81,3 +95,4 @@ The following third-party software is also directly included:
 
 - sirupsen/logrus (c) Simon Eskildsen, MIT license. See: https://github.com/sirupsen/logrus
 - cloudflare/cloudflare-go (c) CloudFlare, BSD license. See: https://github.com/cloudflare/cloudflare-go
+- asaskevich/govalidator (c) Alex Saskevich, MIT license. See: https://github.com/asaskevich/govalidator
