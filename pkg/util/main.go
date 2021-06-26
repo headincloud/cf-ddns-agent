@@ -17,24 +17,14 @@
 package util
 
 import (
+	"context"
 	"net"
 
 	"github.com/cloudflare/cloudflare-go"
 	log "github.com/sirupsen/logrus"
 )
 
-func PerformRecordUpdate(token string, domain string, host string, ipv4 net.IP, ipv6 net.IP) (err error) {
-	if ipv4 != nil {
-		err = UpdateCFRecord(token, domain, host, "A", ipv4)
-	}
-
-	if ipv6 != nil {
-		err = UpdateCFRecord(token, domain, host, "AAAA", ipv6)
-	}
-	return
-}
-
-func UpdateCFRecord(token string, domain string, host string, recordType string, ip net.IP) (err error) {
+func UpdateCFRecord(token string, domain string, host string, recordType string, ip net.IP, dryRun bool, createMode bool) (err error) {
 	// start with creating a CF api object with the token.
 	api, err := cloudflare.NewWithAPIToken(token)
 	if err != nil {
@@ -53,11 +43,39 @@ func UpdateCFRecord(token string, domain string, host string, recordType string,
 		Name: host,
 		Type: recordType,
 	}
-	records, err := api.DNSRecords(id, cfRecord)
+	records, err := api.DNSRecords(context.Background(),id, cfRecord)
 	if err != nil {
-		log.Errorf("Error encountered while checking current IP of %s: %s", host, err.Error())
-		return
+			log.Errorf("Error encountered querying record %s: %s", host, err.Error())
+			return
 	}
+	if len(records)==0 {
+		if createMode {
+			log.Infof("No record found for %s (type %s). Will attempt to create one...", host, recordType)
+			// don't know why cf sdk requires a pointer to a boolean for proxified...
+			proxied:=true
+			newRecord := cloudflare.DNSRecord{
+				Name: host,
+				Type: recordType,
+				Content: ip.String(),
+				Proxied: &proxied,
+			}
+			if !dryRun {
+				_, err = api.CreateDNSRecord(context.Background(), id, newRecord)
+				if err != nil {
+					log.Errorf("Error encountered while creating record for %s: %s", host, err.Error())
+					return
+				}
+				log.Infof("Record created for %s: %s", host, recordType)
+			} else {
+				log.Infof("Skipped creation of DNS record. (dry-run mode active)")
+			}
+			return
+		} else {
+			log.Errorf("No record found for %s: %s", host, recordType)
+			return
+		}
+	}
+
 	for _, record := range records {
 		CurrentIP := net.ParseIP(record.Content)
 		if CurrentIP.Equal(ip) {
@@ -65,11 +83,15 @@ func UpdateCFRecord(token string, domain string, host string, recordType string,
 		} else {
 			log.Infof("Updating IP address of record %s (type %s) to %s", record.Name, record.Type, ip)
 			record.Content = ip.String()
-			err = api.UpdateDNSRecord(id, record.ID, record)
-			if err != nil {
-				log.Errorf("Error updating DNS record for %s (type %s) to %s: %s", record.Name, record.Type, ip, err.Error())
+			if !dryRun {
+				err = api.UpdateDNSRecord(context.Background(), id, record.ID, record)
+				if err != nil {
+					log.Errorf("Error updating DNS record for %s (type %s) to %s: %s", record.Name, record.Type, ip, err.Error())
+				} else {
+					log.Infof("IP address of record record %s (type %s) successfully updated.", record.Name, record.Type)
+				}
 			} else {
-				log.Infof("IP address of record record %s (type %s) successfully updated.", record.Name, record.Type)
+				log.Infof("Skip update of DNS record. (dry-run mode active)")
 			}
 		}
 	}
