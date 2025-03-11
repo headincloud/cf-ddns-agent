@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Jeroen Jacobs/Head In Cloud BV.
+ * Copyright (c) 2020-2025 Jeroen Jacobs/Head In Cloud BV.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,76 +20,98 @@ import (
 	"context"
 	"net"
 
-	"github.com/cloudflare/cloudflare-go"
+	"github.com/cloudflare/cloudflare-go/v4"
+	"github.com/cloudflare/cloudflare-go/v4/dns"
+	"github.com/cloudflare/cloudflare-go/v4/option"
+	"github.com/cloudflare/cloudflare-go/v4/zones"
 	log "github.com/sirupsen/logrus"
 )
 
-func UpdateCFRecord(token string, domain string, host string, recordType string, ip net.IP, dryRun bool, createMode bool) (err error) {
-	// start with creating a CF api object with the token.
-	api, err := cloudflare.NewWithAPIToken(token)
-	if err != nil {
-		log.Errorf("Error encountered while creating CloudFlare API object: %s", err.Error())
-		return
-	}
+func UpdateCFRecord(ctx context.Context, token string, domain string, host string, recordType string, ip net.IP, dryRun bool, createMode bool) (err error) {
+	// create our client
+	api := cloudflare.NewClient(option.WithAPIToken(token))
 
 	// check current setting
-	id, err := api.ZoneIDByName(domain)
+	zoneList, err := api.Zones.List(ctx, zones.ZoneListParams{
+		Name:   cloudflare.F(domain),
+		Status: cloudflare.F(zones.ZoneListParamsStatusActive),
+		Match:  cloudflare.F(zones.ZoneListParamsMatchAll),
+	})
+
 	if err != nil {
-		log.Errorf("Error encountered while performing lookup of zone %s: %s", domain, err.Error())
+		log.Errorf("Failed to retrieve zones for %s: %s", domain, err.Error())
 		return
 	}
 
-	cfRecord := cloudflare.DNSRecord{
-		Name: host,
-		Type: recordType,
+	if len(zoneList.Result) == 0 {
+		log.Errorf("Zone not found: %s", domain)
+		return
 	}
-	records, err := api.DNSRecords(context.Background(),id, cfRecord)
+
+	id := zoneList.Result[0].ID
+
+	// let's find our record
+	validTypes := make(map[string]dns.RecordListParamsType)
+	validTypes["A"] = dns.RecordListParamsTypeA
+	validTypes["AAAA"] = dns.RecordListParamsTypeAAAA
+
+	recordList, err := api.DNS.Records.List(ctx, dns.RecordListParams{
+		ZoneID: cloudflare.F(id),
+		Type:   cloudflare.F(validTypes[recordType]),
+		Name: cloudflare.F(dns.RecordListParamsName{
+			Exact: cloudflare.F(host),
+		}),
+		Match: cloudflare.F(dns.RecordListParamsMatchAll),
+	})
+
 	if err != nil {
-			log.Errorf("Error encountered querying record %s: %s", host, err.Error())
-			return
+		log.Errorf("Failed to retrieve record for %s: %s", host, err.Error())
+		return
 	}
-	if len(records)==0 {
-		if createMode {
+
+	if len(zoneList.Result) == 0 {
+		if !createMode {
+			log.Errorf("Record not found for %s", host)
+			return
+		} else {
+			// create record
 			log.Infof("No record found for %s (type %s). Will attempt to create one...", host, recordType)
-			// don't know why cf sdk requires a pointer to a boolean for proxified...
-			proxied:=true
-			newRecord := cloudflare.DNSRecord{
-				Name: host,
-				Type: recordType,
-				Content: ip.String(),
-				Proxied: &proxied,
-			}
 			if !dryRun {
-				_, err = api.CreateDNSRecord(context.Background(), id, newRecord)
+				_, err = api.DNS.Records.New(ctx, dns.RecordNewParams{
+					ZoneID: cloudflare.F(id),
+					Record: dns.RecordParam{
+						Name:    cloudflare.F(host),
+						Type:    cloudflare.F(dns.RecordType(validTypes[recordType])),
+						TTL:     cloudflare.F(dns.TTL(1)), // 1 = automatic
+						Content: cloudflare.F(ip.String()),
+						Proxied: cloudflare.F(true),
+					},
+				})
 				if err != nil {
 					log.Errorf("Error encountered while creating record for %s: %s", host, err.Error())
 					return
 				}
 				log.Infof("Record created for %s: %s", host, recordType)
+				return
 			} else {
 				log.Infof("Skipped creation of DNS record. (dry-run mode active)")
 			}
-			return
-		} else {
-			log.Errorf("No record found for %s: %s", host, recordType)
-			return
 		}
-	}
-
-	for _, record := range records {
+	} else {
+		// update record
+		record := recordList.Result[0]
 		CurrentIP := net.ParseIP(record.Content)
 		if CurrentIP.Equal(ip) {
 			log.Infof("IP address up to date for record %s (type %s). No DNS change necessary.", record.Name, record.Type)
 		} else {
 			log.Infof("Updating IP address of record %s (type %s) to %s", record.Name, record.Type, ip)
-			record.Content = ip.String()
 			if !dryRun {
-				err = api.UpdateDNSRecord(context.Background(), id, record.ID, record)
-				if err != nil {
-					log.Errorf("Error updating DNS record for %s (type %s) to %s: %s", record.Name, record.Type, ip, err.Error())
-				} else {
-					log.Infof("IP address of record record %s (type %s) successfully updated.", record.Name, record.Type)
-				}
+				_, err = api.DNS.Records.Edit(ctx, record.ID, dns.RecordEditParams{
+					ZoneID: cloudflare.F(id),
+					Record: dns.RecordParam{
+						Content: cloudflare.F(ip.String()),
+					},
+				})
 			} else {
 				log.Infof("Skip update of DNS record. (dry-run mode active)")
 			}

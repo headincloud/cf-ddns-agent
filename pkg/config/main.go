@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Jeroen Jacobs/Head In Cloud BV.
+ * Copyright (c) 2020-2025 Jeroen Jacobs/Head In Cloud BV.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,7 @@ type ProgramOptions struct {
 	DiscoveryURLv6 string
 	Ipv6Enabled    bool
 	DryRun         bool
-	CreateMode	bool
+	CreateMode     bool
 	Domain         string
 	Host           string
 	CfAPIToken     string

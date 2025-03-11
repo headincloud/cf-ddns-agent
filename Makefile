@@ -36,7 +36,7 @@ EXTERNAL_TOOLS=\
 # parameter 1: OS, parameter 2: architecture, parameter 3: target name
 define TARGETRULE
 $3: $(GO_FILES)
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$1 GOARCH=$2 $(GOBUILD) -v -ldflags=$(LD_FLAGS) -o $3 ./cmd/cf-ddns-agent
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$1 GOARCH=$2 $(GOBUILD) -v -ldflags=$(LD_FLAGS) -o $3 .
 endef
 
 # some stuff to split the os/arch string to their own variables
@@ -61,7 +61,7 @@ all-platforms: $(ALL_PLATFORMS)
 
 local:
 	@echo "*** Building local binary... ***"
-	$(GOBUILD) -o $(BINARY_NAME) -v -ldflags=$(LD_FLAGS)  ./cmd/cf-ddns-agent
+	$(GOBUILD) -o $(BINARY_NAME) -v -ldflags=$(LD_FLAGS)  .
 	@echo "*** Done ***"
 
 clean:
