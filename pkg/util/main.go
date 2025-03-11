@@ -72,7 +72,6 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 	if len(zoneList.Result) == 0 {
 		if !createMode {
 			log.Errorf("Record not found for %s", host)
-			return
 		} else {
 			// create record
 			log.Infof("No record found for %s (type %s). Will attempt to create one...", host, recordType)
@@ -92,7 +91,6 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 					return
 				}
 				log.Infof("Record created for %s: %s", host, recordType)
-				return
 			} else {
 				log.Infof("Skipped creation of DNS record. (dry-run mode active)")
 			}

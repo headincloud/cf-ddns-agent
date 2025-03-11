@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -112,14 +113,21 @@ func Execute() (err error) {
 	// if not running as daemon, we exit the program with an appropriate error-code
 	if !Options.Daemon {
 		err = PerformUpdate(ctx)
+		if err != nil {
+			// We do not threat our program being killed by ctrl-c as an error
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				err = nil
+			}
+		}
+
 	} else {
 		// let's do an update at daemon startup
-		_ = PerformUpdate(ctx)
+		err = PerformUpdate(ctx)
 		// now start our timer
 		ticker := time.NewTicker(time.Duration(Options.UpdateInterval) * time.Minute)
 		for {
 			<-ticker.C
-			_ = PerformUpdate(ctx)
+			err = PerformUpdate(ctx)
 		}
 	}
 	return
