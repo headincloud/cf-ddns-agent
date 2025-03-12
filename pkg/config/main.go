@@ -32,7 +32,7 @@ type ProgramOptions struct {
 }
 
 var DefaultDiscoveryURL = "https://api.ipify.org"
-var DefaultDiscoveryURLv6 = "https://api64.ipify.org"
+var DefaultDiscoveryURLv6 = "https://api6.ipify.org"
 
 func InitConfig(Options *ProgramOptions) {
 	flag.StringVar(&Options.DiscoveryURL, "discovery-url", DefaultDiscoveryURL, "Specify an alternative IPv4 discovery service.")
