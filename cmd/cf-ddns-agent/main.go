@@ -147,7 +147,7 @@ func PerformUpdate(ctx context.Context) (err error) {
 	if Options.Ipv6Enabled {
 		MyIPv6, err := discovery.DiscoverIPv6(ctx, Options.DiscoveryURLv6)
 		if err != nil {
-			log.Errorf("An error was encountered during IPv4 discovery. Check previous log entries for more details.")
+			log.Errorf("An error was encountered during IPv6 discovery. Check previous log entries for more details.")
 		} else {
 			err = util.UpdateCFRecord(ctx, Options.CfAPIToken, Options.Domain, Options.Host, "AAAA", MyIPv6, Options.DryRun, Options.CreateMode)
 			if err != nil {

@@ -130,6 +130,10 @@ func DiscoverIPv6(ctx context.Context, DiscoveryURL string) (ip net.IP, err erro
 			return
 		}
 		log.Infof("IP address received: %s", ip)
+	} else {
+		err = fmt.Errorf("could not parse response as valid ipv6 address: %s", string(body))
+		log.Error(err.Error())
+		return
 	}
 	return
 }

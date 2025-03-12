@@ -69,7 +69,7 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 		return
 	}
 
-	if len(zoneList.Result) == 0 {
+	if len(recordList.Result) == 0 {
 		if !createMode {
 			log.Errorf("Record not found for %s", host)
 		} else {
