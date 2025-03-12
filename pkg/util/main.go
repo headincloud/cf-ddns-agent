@@ -19,6 +19,7 @@ package util
 import (
 	"context"
 	"net"
+	"time"
 
 	"github.com/cloudflare/cloudflare-go/v4"
 	"github.com/cloudflare/cloudflare-go/v4/dns"
@@ -36,7 +37,7 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 		Name:   cloudflare.F(domain),
 		Status: cloudflare.F(zones.ZoneListParamsStatusActive),
 		Match:  cloudflare.F(zones.ZoneListParamsMatchAll),
-	})
+	}, option.WithRequestTimeout(10*time.Second))
 
 	if err != nil {
 		log.Errorf("Failed to retrieve zones for %s: %s", domain, err.Error())
@@ -62,7 +63,7 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 			Exact: cloudflare.F(host),
 		}),
 		Match: cloudflare.F(dns.RecordListParamsMatchAll),
-	})
+	}, option.WithRequestTimeout(10*time.Second))
 
 	if err != nil {
 		log.Errorf("Failed to retrieve record for %s: %s", host, err.Error())
@@ -85,7 +86,7 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 						Content: cloudflare.F(ip.String()),
 						Proxied: cloudflare.F(true),
 					},
-				})
+				}, option.WithRequestTimeout(10*time.Second))
 				if err != nil {
 					log.Errorf("Error encountered while creating record for %s: %s", host, err.Error())
 					return
@@ -109,7 +110,7 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 					Record: dns.RecordParam{
 						Content: cloudflare.F(ip.String()),
 					},
-				})
+				}, option.WithRequestTimeout(10*time.Second))
 			} else {
 				log.Infof("Skip update of DNS record. (dry-run mode active)")
 			}

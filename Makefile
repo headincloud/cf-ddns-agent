@@ -9,7 +9,7 @@ BIN_DIR=bin
 
 VERSION=$(shell git describe --tags --always --dirty)
 # linker flags for stripping debug info and injecting version info
-LD_FLAGS="-s -w -X main.Version=$(VERSION)"
+LD_FLAGS="-s -w -X github.com/headincloud/cf-ddns-agent/cmd.Version=$(VERSION)"
 
 # Targets we want to build
 PLATFORMS=linux/386 linux/amd64 linux/arm linux/arm64 linux/mips linux/mips64 linux/ppc64 linux/riscv64 \

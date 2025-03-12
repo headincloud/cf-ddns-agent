@@ -18,6 +18,7 @@ package discovery
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -150,7 +151,11 @@ func RetryableGet(ctx context.Context, url string) (resp *http.Response, retryab
 	resp, err = http.DefaultClient.Do(request)
 	if err != nil {
 		// connection or read time-out
-		retryable = true
+		if errors.Is(err, context.Canceled) {
+			retryable = false
+		} else {
+			retryable = true
+		}
 		return
 	}
 

@@ -17,12 +17,19 @@
 package main
 
 import (
-	cmd "github.com/headincloud/cf-ddns-agent/cmd/cf-ddns-agent"
+	"context"
+	"errors"
+
+	cmd "github.com/headincloud/cf-ddns-agent/cmd"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return
+		} else {
+			log.Fatal(err)
+		}
 	}
 }

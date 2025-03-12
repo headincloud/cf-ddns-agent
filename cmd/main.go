@@ -96,18 +96,17 @@ func Execute() (err error) {
 
 	// run our handler in a separate go routine
 	go func() {
-		select {
-		case sig := <-sigChannel:
+		signalReceived := false
+		for sig := range sigChannel {
+			if signalReceived {
+				// if we get here, it means another ctrl-c was received.
+				log.Errorf("Forced shutdown!")
+				os.Exit(1)
+			}
+			signalReceived = true
 			log.Infof("Received %s, trying exiting gracefully. Press CTRL-C again to force shutdown.", sig)
 			cancelFunc()
-		case <-ctx.Done():
-			// do nothing, we are done
-			return
 		}
-		// listen for another signal after ctrl-c, and hard exit if occurs
-		<-sigChannel
-		log.Errorf("Forced shutdown!")
-		os.Exit(1)
 	}()
 
 	// if not running as daemon, we exit the program with an appropriate error-code
@@ -126,8 +125,13 @@ func Execute() (err error) {
 		// now start our timer
 		ticker := time.NewTicker(time.Duration(Options.UpdateInterval) * time.Minute)
 		for {
-			<-ticker.C
-			err = PerformUpdate(ctx)
+			select {
+			case <-ticker.C:
+				err = PerformUpdate(ctx)
+			case <-ctx.Done():
+				log.Infof("Shutdown complete.")
+				return
+			}
 		}
 	}
 	return
