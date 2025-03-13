@@ -4,7 +4,7 @@
 package tools
 
 import (
-	- "golang.org/x/tools/cmd/goimports"
-	- "github.com/client9/misspell/cmd/misspell"
-	- "github.com/mgechev/revive"
+	_ "github.com/client9/misspell/cmd/misspell"
+	_ "github.com/mgechev/revive"
+	_ "golang.org/x/tools/cmd/goimports"
 )
