@@ -1,0 +1,70 @@
+version: 2
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+      - freebsd
+      - netbsd
+      - openbsd
+      - solaris
+    goarch:
+      - arm64
+      - amd64
+      - arm
+      - mips
+      - mips64
+      - ppc64
+      - riscv64
+    # we only build arm for Linux (Raspberry Pi)
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: darwin
+        goarch: arm
+      - goos: freebsd
+        goarch: arm
+      - goos: openbsd
+        goarch: arm
+      - goos: netbsd
+        goarch: arm
+    goarm:
+      - 6
+      - 7
+    ldflags:
+      - '-s -w -X github.com/headincloud/cf-ddns-agent/cmd.Version={{.Version}}'
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+universal_binaries:
+  - replace: true
+
+archives:
+  - formats: [zip]
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+checksum:
+  algorithm: sha256
+  name_template: >-
+      {{ .ProjectName }}_v{{ .Version }}.SHA256
+   
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+# The lines beneath this are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
