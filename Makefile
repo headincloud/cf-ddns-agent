@@ -101,7 +101,7 @@ bootstrap:
 	@echo "*** Installing required tools for building... ***"
 	@for tool in  $(EXTERNAL_TOOLS) ; do \
 		echo "Installing/Updating $$tool" ; \
-		GO111MODULE=off go get -u $$tool; \
+		go install $$tool; \
 	done
 	@echo "*** Done ***"
 
