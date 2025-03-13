@@ -29,7 +29,7 @@ Program executables can be download from the [releases](https://github.com/headi
   -discovery-url string
     	Specify an alternative IPv4 discovery service. (default "https://api.ipify.org")
   -discovery-url-v6 string
-    	Specify an alternative IPv6 discovery service. (default "https://api64.ipify.org")
+    	Specify an alternative IPv6 discovery service. (default "https://api6.ipify.org")
   -domain string
     	Specify the CloudFlare domain. (example: 'mydomain.org') - REQUIRED.
   -dry-run
