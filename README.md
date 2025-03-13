@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/headincloud/cf-ddns-agent.svg?branch=develop)](https://travis-ci.com/headincloud/cf-ddns-agent)
+[![Build Status](https://github.com/headincloud/cf-ddns-agent/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/headincloud/cf-ddns-agent/actions?query=branch%3Adevelop)
 
 # cf-ddns-agent
 
@@ -13,8 +13,7 @@ At the moment, there are executables for a mix of +- different os/cpu combinatio
 Program executables can be download from the [releases](https://github.com/headincloud/cf-ddns-agent/releases) page.
 
 
-**Attention Windows users: It seems some anti-virus incorrectly classify the windows executable as malware. I am still investigating why this false-positive occurs. If someone has an idea, feel free to reach out. 
-To be clear: I do NOT include malware in the executable!**
+**Attention Windows users: It seems some anti-virus incorrectly classify the windows executable as malware. This could be related to the fact that the go compiler produces statically linked binaries.**
 
 
 ## Usage
