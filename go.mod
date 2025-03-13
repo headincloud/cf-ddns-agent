@@ -1,13 +1,18 @@
 module github.com/headincloud/cf-ddns-agent
 
-go 1.16
+go 1.24
 
 require (
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/cloudflare/cloudflare-go v0.18.0
-	github.com/sirupsen/logrus v1.8.1
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
-	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
+	github.com/cloudflare/cloudflare-go/v4 v4.1.0
+	github.com/sirupsen/logrus v1.9.3
+)
+
+require (
+	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 )

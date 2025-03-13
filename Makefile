@@ -9,12 +9,12 @@ BIN_DIR=bin
 
 VERSION=$(shell git describe --tags --always --dirty)
 # linker flags for stripping debug info and injecting version info
-LD_FLAGS="-s -w -X main.Version=$(VERSION)"
+LD_FLAGS="-s -w -X github.com/headincloud/cf-ddns-agent/cmd.Version=$(VERSION)"
 
 # Targets we want to build
 PLATFORMS=linux/386 linux/amd64 linux/arm linux/arm64 linux/mips linux/mips64 linux/ppc64 linux/riscv64 \
 freebsd/386 freebsd/amd64 freebsd/arm freebsd/arm64 \
-openbsd/386 openbsd/amd64 openbsd/arm openbsd/arm64 openbsd/mips64 \
+openbsd/386 openbsd/amd64 openbsd/arm openbsd/arm64 \
 netbsd/386 netbsd/amd64 netbsd/arm netbsd/arm64 \
 darwin/amd64 windows/amd64 darwin/arm64 \
 solaris/amd64
@@ -36,7 +36,7 @@ EXTERNAL_TOOLS=\
 # parameter 1: OS, parameter 2: architecture, parameter 3: target name
 define TARGETRULE
 $3: $(GO_FILES)
-	CGO_ENABLED=$(CGO_ENABLED) GOOS=$1 GOARCH=$2 $(GOBUILD) -v -ldflags=$(LD_FLAGS) -o $3 ./cmd/cf-ddns-agent
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=$1 GOARCH=$2 $(GOBUILD) -v -ldflags=$(LD_FLAGS) -o $3 .
 endef
 
 # some stuff to split the os/arch string to their own variables
@@ -61,7 +61,7 @@ all-platforms: $(ALL_PLATFORMS)
 
 local:
 	@echo "*** Building local binary... ***"
-	$(GOBUILD) -o $(BINARY_NAME) -v -ldflags=$(LD_FLAGS)  ./cmd/cf-ddns-agent
+	$(GOBUILD) -o $(BINARY_NAME) -v -ldflags=$(LD_FLAGS)  .
 	@echo "*** Done ***"
 
 clean:

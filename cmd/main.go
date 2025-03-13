@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Jeroen Jacobs/Head In Cloud BV.
+ * Copyright (c) 2020-2025 Jeroen Jacobs/Head In Cloud BV.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,9 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package main
+package cmd
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -39,7 +41,7 @@ const (
 	AppName = "cf-ddns-agent - IP update-agent for CloudFlare DNS"
 )
 
-func main() {
+func Execute() (err error) {
 	config.InitConfig(&Options)
 
 	if len(os.Args) == 1 {
@@ -78,53 +80,80 @@ func main() {
 		FullTimestamp: true},
 	)
 
+	// signal handler for our application
+	sigChannel := make(chan os.Signal, 2)
+	signal.Notify(sigChannel, os.Interrupt, syscall.SIGTERM)
+
+	// create our cancel-context to handle ctrl-c
+	ctx, cancelFunc := context.WithCancel(context.Background())
+
+	// make sure our cancel function gets at least once
+	defer func() {
+		signal.Stop(sigChannel)
+		close(sigChannel) // make sure no more writes happen after we stopped signaling
+		cancelFunc()
+	}()
+
+	// run our handler in a separate go routine
+	go func() {
+		signalReceived := false
+		for sig := range sigChannel {
+			if signalReceived {
+				// if we get here, it means another ctrl-c was received.
+				log.Errorf("Forced shutdown!")
+				os.Exit(1)
+			}
+			signalReceived = true
+			log.Infof("Received %s, trying exiting gracefully. Press CTRL-C again to force shutdown.", sig)
+			cancelFunc()
+		}
+	}()
+
 	// if not running as daemon, we exit the program with an appropriate error-code
 	if !Options.Daemon {
-		err := PerformUpdate()
-		defer Exit(err)
+		err = PerformUpdate(ctx)
+		if err != nil {
+			// We do not threat our program being killed by ctrl-c as an error
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				err = nil
+			}
+		}
+
 	} else {
 		// let's do an update at daemon startup
-		_ = PerformUpdate()
-		// now start our timer and ctrl-c handler
+		err = PerformUpdate(ctx)
+		// now start our timer
 		ticker := time.NewTicker(time.Duration(Options.UpdateInterval) * time.Minute)
-		quit := make(chan os.Signal)
-		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 		for {
 			select {
 			case <-ticker.C:
-				_ = PerformUpdate()
-			case sig := <-quit:
-				log.Infof("Received %s, exiting gracefully...", sig)
-				ticker.Stop()
+				err = PerformUpdate(ctx)
+			case <-ctx.Done():
+				log.Infof("Shutdown complete.")
 				return
 			}
 		}
 	}
+	return
 }
 
-func Exit(err error) {
-	if err != nil {
-		defer os.Exit(1)
-	}
-}
-
-func PerformUpdate() (err error) {
+func PerformUpdate(ctx context.Context) (err error) {
 	// get ip and update
-	MyIPv4, err := discovery.DiscoverIPv4(Options.DiscoveryURL)
+	MyIPv4, err := discovery.DiscoverIPv4(ctx, Options.DiscoveryURL)
 	if err != nil {
 		log.Errorf("An error was encountered during IPv4 discovery. Check previous log entries for more details.")
 	} else {
-		err = util.UpdateCFRecord(Options.CfAPIToken, Options.Domain, Options.Host, "A", MyIPv4, Options.DryRun, Options.CreateMode)
+		err = util.UpdateCFRecord(ctx, Options.CfAPIToken, Options.Domain, Options.Host, "A", MyIPv4, Options.DryRun, Options.CreateMode)
 		if err != nil {
 			log.Error("An error was encountered during updating of the DNS A-record. Check previous log entries for more details.")
 		}
 	}
 	if Options.Ipv6Enabled {
-		MyIPv6, err := discovery.DiscoverIPv6(Options.DiscoveryURLv6)
+		MyIPv6, err := discovery.DiscoverIPv6(ctx, Options.DiscoveryURLv6)
 		if err != nil {
-			log.Errorf("An error was encountered during IPv4 discovery. Check previous log entries for more details.")
+			log.Errorf("An error was encountered during IPv6 discovery. Check previous log entries for more details.")
 		} else {
-			err = util.UpdateCFRecord(Options.CfAPIToken, Options.Domain, Options.Host, "AAAA", MyIPv6, Options.DryRun, Options.CreateMode)
+			err = util.UpdateCFRecord(ctx, Options.CfAPIToken, Options.Domain, Options.Host, "AAAA", MyIPv6, Options.DryRun, Options.CreateMode)
 			if err != nil {
 				log.Error("An error was encountered during updating of the DNS AAAA-record. Check previous log entries for more details.")
 			}

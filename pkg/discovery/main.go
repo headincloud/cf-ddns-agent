@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Jeroen Jacobs/Head In Cloud BV.
+ * Copyright (c) 2020-2025 Jeroen Jacobs/Head In Cloud BV.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,8 +17,10 @@
 package discovery
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"time"
@@ -27,13 +29,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
+func DiscoverIPv4(ctx context.Context, DiscoveryURL string) (ip net.IP, err error) {
 	currentDelay := 10 * time.Second
 	incrementDelay := 10 * time.Second
 	retries := 3
 	// get ip
 	log.Infof("Contacting the IP discovery service (%s)...", DiscoveryURL)
-	resp, retryable, err := RetryableGet(DiscoveryURL)
+	resp, retryable, err := RetryableGet(ctx, DiscoveryURL)
 	if err != nil {
 		log.Error(err.Error())
 		if retryable {
@@ -41,7 +43,7 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 				log.Infof("will retry in %s", currentDelay.String())
 				time.Sleep(currentDelay)
 				// action
-				resp, retryable, err = RetryableGet(DiscoveryURL)
+				resp, retryable, err = RetryableGet(ctx, DiscoveryURL)
 				if err != nil {
 					log.Error(err.Error())
 					if retryable {
@@ -63,7 +65,7 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
@@ -80,13 +82,13 @@ func DiscoverIPv4(DiscoveryURL string) (ip net.IP, err error) {
 	return
 }
 
-func DiscoverIPv6(DiscoveryURL string) (ip net.IP, err error) {
+func DiscoverIPv6(ctx context.Context, DiscoveryURL string) (ip net.IP, err error) {
 	currentDelay := 10 * time.Second
 	incrementDelay := 10 * time.Second
 	retries := 3
 	// get ip
 	log.Infof("Contacting the IPv6 discovery service (%s)...", DiscoveryURL)
-	resp, retryable, err := RetryableGet(DiscoveryURL)
+	resp, retryable, err := RetryableGet(ctx, DiscoveryURL)
 	if err != nil {
 		log.Error(err.Error())
 		if retryable {
@@ -94,7 +96,7 @@ func DiscoverIPv6(DiscoveryURL string) (ip net.IP, err error) {
 				log.Infof("will retry in %s", currentDelay.String())
 				time.Sleep(currentDelay)
 				// action
-				resp, retryable, err = RetryableGet(DiscoveryURL)
+				resp, retryable, err = RetryableGet(ctx, DiscoveryURL)
 				if err != nil {
 					log.Error(err.Error())
 					if retryable {
@@ -116,7 +118,7 @@ func DiscoverIPv6(DiscoveryURL string) (ip net.IP, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
@@ -129,18 +131,31 @@ func DiscoverIPv6(DiscoveryURL string) (ip net.IP, err error) {
 			return
 		}
 		log.Infof("IP address received: %s", ip)
+	} else {
+		err = fmt.Errorf("could not parse response as valid ipv6 address: %s", string(body))
+		log.Error(err.Error())
+		return
 	}
 	return
 }
 
-func RetryableGet(url string) (resp *http.Response, retryable bool, err error) {
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err = client.Get(url)
-	// connection or read time-out
+func RetryableGet(ctx context.Context, url string) (resp *http.Response, retryable bool, err error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		retryable = true
+		return
+	}
+
+	resp, err = http.DefaultClient.Do(request)
+	if err != nil {
+		// connection or read time-out
+		if errors.Is(err, context.Canceled) {
+			retryable = false
+		} else {
+			retryable = true
+		}
 		return
 	}
 
