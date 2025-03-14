@@ -1,0 +1,76 @@
+name: build-program
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      # Show go version
+      - name: Display Go version
+        run: go version
+      # install dependencies
+      - name: bootstrap dependencies
+        run: make bootstrap
+      - name: run lint
+        run: make lint
+      - name: run vet
+        run: make vet
+      - name: check spelling
+        run: make check-spelling
+      - name: run tests
+        run: make test
+      # test release builder config file
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          # 'latest', 'nightly', or a semver
+          version: "~> v2"
+          args: check
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      # Show go version
+      - name: Display Go version
+        run: go version
+      # make local build
+      - name: build local binary
+        run: make local
+      # test release builder
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          # 'latest', 'nightly', or a semver
+          version: "~> v2"
+          args: release --clean --snapshot
+   
+
+
+
+
+

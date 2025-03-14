@@ -1,13 +1,35 @@
 module github.com/headincloud/cf-ddns-agent
 
-go 1.16
+go 1.24.1
 
 require (
-	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/cloudflare/cloudflare-go v0.18.0
-	github.com/sirupsen/logrus v1.8.1
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
-	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
+	github.com/client9/misspell v0.3.4
+	github.com/cloudflare/cloudflare-go/v4 v4.1.0
+	github.com/mgechev/revive v1.7.0
+	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/tools v0.31.0
+)
+
+require (
+	github.com/BurntSushi/toml v1.4.0 // indirect
+	github.com/chavacava/garif v0.1.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
+	github.com/fatih/structtag v1.2.0 // indirect
+	github.com/hashicorp/go-version v1.7.0 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mgechev/dots v0.0.0-20210922191527-e955255bf517 // indirect
+	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/spf13/afero v1.12.0 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 )
