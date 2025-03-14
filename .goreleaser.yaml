@@ -58,11 +58,13 @@ checksum:
       {{ .ProjectName }}_v{{ .Version }}.SHA256
    
 changelog:
+  use: github
   sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
+      - typo
 
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.

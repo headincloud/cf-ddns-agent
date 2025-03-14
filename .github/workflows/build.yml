@@ -49,6 +49,16 @@ jobs:
       # make local build
       - name: build local binary
         run: make local
+      # test release builder
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          # 'latest', 'nightly', or a semver
+          version: "~> v2"
+          args: release --clean --snapshot
+   
 
 
 
