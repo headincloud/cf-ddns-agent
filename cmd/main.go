@@ -35,50 +35,37 @@ import (
 
 // will be replaced during build-phase with actual git-based version info
 var Version = "local"
-var Options config.ProgramOptions
+var Options *config.ProgramOptions
 
 const (
 	AppName = "cf-ddns-agent - IP update-agent for CloudFlare DNS"
 )
 
 func Execute() (err error) {
-	config.InitConfig(&Options)
-
+	Options = &config.ProgramOptions{}
+	Options.Init()
 	if len(os.Args) == 1 {
+		fmt.Printf("%s/%s\n", path.Base(os.Args[0]), Version)
 		flag.PrintDefaults()
-		return
+		return nil
 	}
 
 	if flag.Arg(0) == "version" {
 		fmt.Printf("%s/%s\n", path.Base(os.Args[0]), Version)
-		return
-	}
-
-	log.Infof("%s (version %s) is starting...\n", AppName, Version)
-	log.Infof("IPv4 Discovery service url is set to: %s", Options.DiscoveryURL)
-	if Options.Ipv6Enabled {
-		log.Infof("IPv6 Discovery service url is set to: %s", Options.DiscoveryURLv6)
-	}
-
-	if Options.Domain == "" || Options.Host == "" {
-		log.Fatal("Both --domain and --host  must be set!")
-	}
-
-	if Options.Daemon && (Options.UpdateInterval < 5) {
-		log.Warnf("Update interval is set too low. It has been set to 5 minutes.")
-		Options.UpdateInterval = 5
-	}
-
-	if Options.CfAPIToken != "" {
-		log.Warning("CloudFlare API token specified via command-line parameter instead of CF_API_TOKEN environment variable. This is insecure!")
-	} else {
-		Options.CfAPIToken = os.Getenv("CF_API_TOKEN")
+		return nil
 	}
 
 	// set log format to include timestamp, even when TTY is attached.
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true},
 	)
+
+	log.Infof("%s (version %s) is starting...\n", AppName, Version)
+
+	// validate configuration
+	if err = Options.Validate(); err != nil {
+		return
+	}
 
 	// signal handler for our application
 	sigChannel := make(chan os.Signal, 2)
@@ -143,7 +130,7 @@ func PerformUpdate(ctx context.Context) (err error) {
 	if err != nil {
 		log.Errorf("An error was encountered during IPv4 discovery. Check previous log entries for more details.")
 	} else {
-		err = util.UpdateCFRecord(ctx, Options.CfAPIToken, Options.Domain, Options.Host, "A", MyIPv4, Options.DryRun, Options.CreateMode)
+		err = util.UpdateCFRecord(ctx, Options, "A", MyIPv4)
 		if err != nil {
 			log.Error("An error was encountered during updating of the DNS A-record. Check previous log entries for more details.")
 		}
@@ -153,7 +140,7 @@ func PerformUpdate(ctx context.Context) (err error) {
 		if err != nil {
 			log.Errorf("An error was encountered during IPv6 discovery. Check previous log entries for more details.")
 		} else {
-			err = util.UpdateCFRecord(ctx, Options.CfAPIToken, Options.Domain, Options.Host, "AAAA", MyIPv6, Options.DryRun, Options.CreateMode)
+			err = util.UpdateCFRecord(ctx, Options, "AAAA", MyIPv6)
 			if err != nil {
 				log.Error("An error was encountered during updating of the DNS AAAA-record. Check previous log entries for more details.")
 			}

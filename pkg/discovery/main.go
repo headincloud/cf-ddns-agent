@@ -25,16 +25,16 @@ import (
 	"net/http"
 	"time"
 
-	valid "github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
 )
 
 type IPv4Address struct {
-	Address string `validate:"ipv4"`
+	Address string `validate:"required,ipv4"`
 }
 
 type IPv6Address struct {
-	Address string `validate:"ipv6"`
+	Address string `validate:"required,ipv6"`
 }
 
 func DiscoverIPv4(ctx context.Context, DiscoveryURL string) (ip net.IP, err error) {
@@ -78,7 +78,7 @@ func DiscoverIPv4(ctx context.Context, DiscoveryURL string) (ip net.IP, err erro
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
-	validate := valid.New()
+	validate := validator.New(validator.WithRequiredStructEnabled())
 	err = validate.Struct(IPv4Address{
 		Address: string(body),
 	})
@@ -138,7 +138,7 @@ func DiscoverIPv6(ctx context.Context, DiscoveryURL string) (ip net.IP, err erro
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
-	validate := valid.New()
+	validate := validator.New(validator.WithRequiredStructEnabled())
 	err = validate.Struct(IPv6Address{
 		Address: string(body),
 	})
