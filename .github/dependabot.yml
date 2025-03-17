@@ -12,4 +12,4 @@ updates:
     target-branch: "develop"
     commit-message:
       prefix: "deps"
-      include: "subject"
+      include: "scope"
