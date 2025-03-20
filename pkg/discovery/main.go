@@ -25,9 +25,17 @@ import (
 	"net/http"
 	"time"
 
-	valid "github.com/asaskevich/govalidator"
+	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
 )
+
+type IPv4Address struct {
+	Address string `validate:"required,ipv4"`
+}
+
+type IPv6Address struct {
+	Address string `validate:"required,ipv6"`
+}
 
 func DiscoverIPv4(ctx context.Context, DiscoveryURL string) (ip net.IP, err error) {
 	currentDelay := 10 * time.Second
@@ -70,7 +78,14 @@ func DiscoverIPv4(ctx context.Context, DiscoveryURL string) (ip net.IP, err erro
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
-	if valid.IsIPv4(string(body)) {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err = validate.Struct(IPv4Address{
+		Address: string(body),
+	})
+	if err != nil {
+		err = fmt.Errorf("could not parse response as valid ipv4 address: %s", string(body))
+		log.Error(err.Error())
+	} else {
 		ip = net.ParseIP(string(body))
 		if ip == nil {
 			err = fmt.Errorf("could not parse received value as an IPv4 address")
@@ -123,7 +138,14 @@ func DiscoverIPv6(ctx context.Context, DiscoveryURL string) (ip net.IP, err erro
 		log.Errorf("could not read response from IP discovery service: %s", err.Error())
 		return
 	}
-	if valid.IsIPv6(string(body)) {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	err = validate.Struct(IPv6Address{
+		Address: string(body),
+	})
+	if err != nil {
+		err = fmt.Errorf("could not parse response as valid ipv6 address: %s", string(body))
+		log.Error(err.Error())
+	} else {
 		ip = net.ParseIP(string(body))
 		if ip == nil {
 			err = fmt.Errorf("could not parse received value as an IPv6 address")
@@ -131,10 +153,6 @@ func DiscoverIPv6(ctx context.Context, DiscoveryURL string) (ip net.IP, err erro
 			return
 		}
 		log.Infof("IP address received: %s", ip)
-	} else {
-		err = fmt.Errorf("could not parse response as valid ipv6 address: %s", string(body))
-		log.Error(err.Error())
-		return
 	}
 	return
 }

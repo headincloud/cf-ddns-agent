@@ -25,27 +25,28 @@ import (
 	"github.com/cloudflare/cloudflare-go/v4/dns"
 	"github.com/cloudflare/cloudflare-go/v4/option"
 	"github.com/cloudflare/cloudflare-go/v4/zones"
+	"github.com/headincloud/cf-ddns-agent/pkg/config"
 	log "github.com/sirupsen/logrus"
 )
 
-func UpdateCFRecord(ctx context.Context, token string, domain string, host string, recordType string, ip net.IP, dryRun bool, createMode bool) (err error) {
+func UpdateCFRecord(ctx context.Context, Options *config.ProgramOptions, recordType string, ip net.IP) (err error) {
 	// create our client
-	api := cloudflare.NewClient(option.WithAPIToken(token))
+	api := cloudflare.NewClient(option.WithAPIToken(Options.CfAPIToken))
 
 	// check current setting
 	zoneList, err := api.Zones.List(ctx, zones.ZoneListParams{
-		Name:   cloudflare.F(domain),
+		Name:   cloudflare.F(Options.Domain),
 		Status: cloudflare.F(zones.ZoneListParamsStatusActive),
 		Match:  cloudflare.F(zones.ZoneListParamsMatchAll),
 	}, option.WithRequestTimeout(10*time.Second))
 
 	if err != nil {
-		log.Errorf("Failed to retrieve zones for %s: %s", domain, err.Error())
+		log.Errorf("Failed to retrieve zones for %s: %s", Options.Domain, err.Error())
 		return
 	}
 
 	if len(zoneList.Result) == 0 {
-		log.Errorf("Zone not found: %s", domain)
+		log.Errorf("Zone not found: %s", Options.Domain)
 		return
 	}
 
@@ -60,27 +61,27 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 		ZoneID: cloudflare.F(id),
 		Type:   cloudflare.F(validTypes[recordType]),
 		Name: cloudflare.F(dns.RecordListParamsName{
-			Exact: cloudflare.F(host),
+			Exact: cloudflare.F(Options.Host),
 		}),
 		Match: cloudflare.F(dns.RecordListParamsMatchAll),
 	}, option.WithRequestTimeout(10*time.Second))
 
 	if err != nil {
-		log.Errorf("Failed to retrieve record for %s: %s", host, err.Error())
+		log.Errorf("Failed to retrieve record for %s: %s", Options.Host, err.Error())
 		return
 	}
 
 	if len(recordList.Result) == 0 {
-		if !createMode {
-			log.Errorf("Record not found for %s", host)
+		if !Options.CreateMode {
+			log.Errorf("Record not found for %s", Options.Host)
 		} else {
 			// create record
-			log.Infof("No record found for %s (type %s). Will attempt to create one...", host, recordType)
-			if !dryRun {
+			log.Infof("No record found for %s (type %s). Will attempt to create one...", Options.Host, recordType)
+			if Options.DryRun {
 				_, err = api.DNS.Records.New(ctx, dns.RecordNewParams{
 					ZoneID: cloudflare.F(id),
 					Record: dns.RecordParam{
-						Name:    cloudflare.F(host),
+						Name:    cloudflare.F(Options.Host),
 						Type:    cloudflare.F(dns.RecordType(validTypes[recordType])),
 						TTL:     cloudflare.F(dns.TTL(1)), // 1 = automatic
 						Content: cloudflare.F(ip.String()),
@@ -88,10 +89,10 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 					},
 				}, option.WithRequestTimeout(10*time.Second))
 				if err != nil {
-					log.Errorf("Error encountered while creating record for %s: %s", host, err.Error())
+					log.Errorf("Error encountered while creating record for %s: %s", Options.Host, err.Error())
 					return
 				}
-				log.Infof("Record created for %s: %s", host, recordType)
+				log.Infof("Record created for %s: %s", Options.Host, recordType)
 			} else {
 				log.Infof("Skipped creation of DNS record. (dry-run mode active)")
 			}
@@ -104,7 +105,7 @@ func UpdateCFRecord(ctx context.Context, token string, domain string, host strin
 			log.Infof("IP address up to date for record %s (type %s). No DNS change necessary.", record.Name, record.Type)
 		} else {
 			log.Infof("Updating IP address of record %s (type %s) to %s", record.Name, record.Type, ip)
-			if !dryRun {
+			if !Options.DryRun {
 				_, err = api.DNS.Records.Edit(ctx, record.ID, dns.RecordEditParams{
 					ZoneID: cloudflare.F(id),
 					Record: dns.RecordParam{

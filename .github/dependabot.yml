@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "direct"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    target-branch: "develop"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
