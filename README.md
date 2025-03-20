@@ -35,7 +35,7 @@ Program executables can be download from the [releases](https://github.com/headi
   -dry-run
     	Run in "dry-run" mode, don't actually update the record. (default "false")
   -host string
-    	Specify the full A record name that needs to be updated. (example: 'myhost.mydomain.org') - REQUIRED.
+    	Specify the full hostname (FQDN) that needs to be updated. (example: 'myhost.mydomain.org') - REQUIRED.
   -ipv6
     	Enable ipv6 support and CAA record updates, check README. (default "false")
   -update-interval int
@@ -45,7 +45,7 @@ Program executables can be download from the [releases](https://github.com/headi
 
 By default, the program will update the IP (if necessary) and then exit. If the update fails, error code 1 will be returned by the program. To run it continuously, use the `-daemon` and `-update-interval` parameters.
 
-The `-discovery-url` parameter, expects a URL that returns the IPv4 address in plain-text, without any markup.
+The `-discovery-url`and `-discovery-url-v6` parameters expect a URL that returns the IPv4/IPv6 address in plain-text, without any markup.
 
 If setting the `CF_API_TOKEN` is not possible for some reason, it is possible to specify it on the command line using the `-cf-api-token` parameter. **This is discouraged as this is not very secure!**
 
@@ -59,14 +59,9 @@ If setting the `CF_API_TOKEN` is not possible for some reason, it is possible to
 
 ## Ipv6 support
 
-This software now includes experimental ipv6 support. you can enable it with the `-ipv6=true` parameter. This will update the AAAA-record for the specified host.
+This software now includes ipv6 support. you can enable it with the `-ipv6=true` parameter. This will update the AAAA-record for the specified host.
 
-**Attention: Most operating systems use a temporary ipv6 address for outbound connections. This feature needs to be disabled in order for `cf-ddns-agent` to work correctly! Check your operating system's manual.**
-
-## Roadmap
-
-- Improve IPv6 and AAAA record support
-- Multiple IP discovery providers
+**Attention: Most operating systems use a temporary ipv6 address for outbound connections. This feature needs to be disabled in order for `cf-ddns-agent` to work correctly when IPv6 support is enabled! Check your operating system's manual.**
 
 
 ## License and copyright
@@ -74,7 +69,7 @@ This software now includes experimental ipv6 support. you can enable it with the
 ### Main software
 
 cf-ddns-agent
-Copyright (C) 2020 Jeroen Jacobs/Head In Cloud BV.
+Copyright (C) 2020-2025 Jeroen Jacobs/Head In Cloud BV.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -94,4 +89,4 @@ The following third-party software is also directly included:
 
 - sirupsen/logrus (c) Simon Eskildsen, MIT license. See: https://github.com/sirupsen/logrus
 - cloudflare/cloudflare-go (c) CloudFlare, BSD license. See: https://github.com/cloudflare/cloudflare-go
-- asaskevich/govalidator (c) Alex Saskevich, MIT license. See: https://github.com/asaskevich/govalidator
+- go-playground/validator, MIT license. See: https://github.com/go-playground/validator
