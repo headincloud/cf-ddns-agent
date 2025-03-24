@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/client9/misspell v0.3.4
-	github.com/cloudflare/cloudflare-go/v4 v4.1.0
+	github.com/cloudflare/cloudflare-go/v4 v4.2.0
 	github.com/go-playground/validator/v10 v10.25.0
 	github.com/mgechev/revive v1.7.0
 	github.com/sirupsen/logrus v1.9.3
