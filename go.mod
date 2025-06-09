@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/mgechev/revive v1.9.0
 	github.com/sirupsen/logrus v1.9.3
-	golang.org/x/tools v0.32.0
+	golang.org/x/tools v0.34.0
 )
 
 require (
@@ -32,10 +32,10 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 )
