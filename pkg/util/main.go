@@ -77,7 +77,7 @@ func UpdateCFRecord(ctx context.Context, Options *config.ProgramOptions, recordT
 		} else {
 			// create record
 			log.Infof("No record found for %s (type %s). Will attempt to create one...", Options.Host, recordType)
-			if Options.DryRun {
+			if !Options.DryRun {
 				_, err = api.DNS.Records.New(ctx, dns.RecordNewParams{
 					ZoneID: cloudflare.F(id),
 					Record: dns.RecordParam{
