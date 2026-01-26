@@ -7,7 +7,7 @@ require (
 	github.com/cloudflare/cloudflare-go/v4 v4.4.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/mgechev/revive v1.11.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	golang.org/x/tools v0.35.0
 )
 
